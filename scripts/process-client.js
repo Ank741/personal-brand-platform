@@ -50,7 +50,6 @@ async function runProcessClient() {
   const projectRoot = path.resolve(__dirname, '..');
   let onboardingDir = path.join(projectRoot, 'onboarding', clientSlug);
 
-  // If alternative casing exists, resolve to canonical directory
   if (!fs.existsSync(onboardingDir)) {
     const parentOnboarding = path.join(projectRoot, 'onboarding');
     if (fs.existsSync(parentOnboarding)) {
@@ -72,6 +71,7 @@ async function runProcessClient() {
   const intakePath = path.join(processedDir, 'intake.json');
   const missingInfoPath = path.join(processedDir, 'MISSING_INFORMATION.md');
   const reportPath = path.join(processedDir, 'PROCESSING_REPORT.md');
+  const changeReportPath = path.join(processedDir, 'CHANGE_REPORT.md');
 
   console.log(`\n==================================================`);
   console.log(`PERSONAL BRAND PLATFORM — CLIENT PROCESSOR (COMMAND 2)`);
@@ -80,7 +80,6 @@ async function runProcessClient() {
   console.log(`Workspace:      ${onboardingDir}`);
   console.log(`==================================================\n`);
 
-  // 1. Verify workspace & raw directory exist
   if (!fs.existsSync(rawDir)) {
     console.error('\x1b[31m%s\x1b[0m', `ERROR: Raw drop directory not found at: ${rawDir}`);
     console.log(`\nPlease run Command 1 first:`);
@@ -91,11 +90,32 @@ async function runProcessClient() {
   if (!fs.existsSync(processedDir)) fs.mkdirSync(processedDir, { recursive: true });
   if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir, { recursive: true });
 
-  // 2. Read raw files (Untouched source files)
+  // Load existing client data if present (for content preservation & incremental merging)
+  let existingClientData = null;
+  if (fs.existsSync(clientDataPath)) {
+    try {
+      existingClientData = JSON.parse(fs.readFileSync(clientDataPath, 'utf8'));
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  // Parse explicit operator human requests (update-request.txt)
+  const operatorInstructions = parseOperatorUpdateRequest(rawDir);
+
+  // Track incremental changes
+  const changeLog = {
+    added: [],
+    updated: [],
+    removed: [],
+    unchanged: [],
+    warnings: [],
+  };
+
+  // Read raw files
   const rawFiles = fs.readdirSync(rawDir).filter((f) => !f.startsWith('.'));
   if (rawFiles.length === 0) {
     console.error('\x1b[31m%s\x1b[0m', `ERROR: ${rawDir} is empty.`);
-    console.log(`Please place client documents and photos in the raw folder before processing.`);
     process.exit(1);
   }
 
@@ -114,7 +134,7 @@ async function runProcessClient() {
     }
   });
 
-  // 3. Extract text from documents (PDF, DOCX, TXT, MD)
+  // Extract text from raw documents (PDF, DOCX, TXT, MD)
   let extractedRawText = '';
   for (const docFile of docFiles) {
     const fullPath = path.join(rawDir, docFile);
@@ -144,49 +164,66 @@ async function runProcessClient() {
     }
   }
 
-  // 4. Parse extracted text into structured client data
-  const parsedData = parseComprehensiveExtractedText(extractedRawText, clientSlug);
+  // Parse extracted raw text
+  const parsedData = parseComprehensiveExtractedText(extractedRawText, clientSlug, docFiles);
 
-  // 5. Profile Image Priority Selection Logic
+  // Extract Articles / Ideas from raw material
+  const parsedArticles = extractArticlesFromText(extractedRawText, docFiles);
+
+  // Extract Speaking, Videos, Courses, Portfolio items
+  const parsedSpeaking = extractSpeakingFromText(extractedRawText, docFiles);
+  const parsedVideos = extractVideosFromText(extractedRawText, docFiles);
+  const parsedCourses = extractCoursesFromText(extractedRawText, docFiles);
+  const parsedPortfolio = extractPortfolioFromText(extractedRawText, docFiles);
+
+  // Profile Image Selection Logic
   let selectedProfileImg = null;
   let profileSelectionReason = '';
 
-  // Priority 1: Filename contains headshot, profile, portrait
-  const priority1Match = imageFiles.find((f) => /(headshot|profile|portrait)/i.test(f));
-  if (priority1Match) {
-    selectedProfileImg = priority1Match;
-    profileSelectionReason = `Priority #1: Filename matched headshot/profile/portrait keyword ('${priority1Match}')`;
+  const p1Match = imageFiles.find((f) => /(headshot|profile|portrait|avatar|headshot-photo|profile-photo|new-portrait)/i.test(f));
+  if (p1Match) {
+    selectedProfileImg = p1Match;
+    profileSelectionReason = `Priority #1: Explicit headshot/profile keyword match ('${p1Match}')`;
   }
 
-  // Priority 2: Filename contains photo
   if (!selectedProfileImg) {
-    const priority2Match = imageFiles.find((f) => /(photo)/i.test(f));
-    if (priority2Match) {
-      selectedProfileImg = priority2Match;
-      profileSelectionReason = `Priority #2: Filename matched photo keyword ('${priority2Match}')`;
+    const p2Match = imageFiles.find((f) => /(photo|me)/i.test(f));
+    if (p2Match) {
+      selectedProfileImg = p2Match;
+      profileSelectionReason = `Priority #2: Filename matched photo keyword ('${p2Match}')`;
     }
   }
 
-  // Priority 3: Non-landscape/travel image
-  if (!selectedProfileImg && imageFiles.length > 0) {
-    const nonLandscapeMatch = imageFiles.find((f) => !/(france|italy|portugal|spain|travel|landscape|gallery)/i.test(f));
-    selectedProfileImg = nonLandscapeMatch || imageFiles[0];
-    profileSelectionReason = `Priority #3: Selected non-landscape image candidate ('${selectedProfileImg}')`;
+  if (!selectedProfileImg && existingClientData?.mediaAssets?.proposedProfileImage) {
+    const prevImage = existingClientData.mediaAssets.proposedProfileImage;
+    if (imageFiles.includes(prevImage)) {
+      selectedProfileImg = prevImage;
+      profileSelectionReason = `Preserved established portrait from previous run ('${prevImage}')`;
+    }
   }
 
-  // General Gallery Images
-  const galleryFiles = imageFiles.filter((f) => f !== selectedProfileImg);
+  if (!selectedProfileImg && imageFiles.length > 0) {
+    const nonTravelImages = imageFiles.filter((f) => !/(france|italy|portugal|spain|travel|landscape|gallery|event)/i.test(f));
+    selectedProfileImg = nonTravelImages[0] || imageFiles[0];
+    profileSelectionReason = `Selection candidate ('${selectedProfileImg}')`;
+  }
 
-  // Copy images safely to assets/
+  // Handle explicit image removal requests
+  let galleryFiles = imageFiles.filter((f) => f !== selectedProfileImg);
+  if (operatorInstructions.removeImages.length > 0) {
+    operatorInstructions.removeImages.forEach((remImg) => {
+      galleryFiles = galleryFiles.filter((f) => !f.toLowerCase().includes(remImg));
+      changeLog.removed.push(`Image removed via update-request.txt ('${remImg}')`);
+    });
+  }
+
+  // Copy images to assets/ and public folders
   imageFiles.forEach((img) => {
     const src = path.join(rawDir, img);
     const dest = path.join(assetsDir, img);
-    if (!fs.existsSync(dest)) {
-      fs.copyFileSync(src, dest);
-    }
+    fs.copyFileSync(src, dest);
   });
 
-  // Target public directories
   const publicProfileDir = path.join(projectRoot, 'public', 'clients', clientSlug, 'profile');
   const publicGalleryDir = path.join(projectRoot, 'public', 'clients', clientSlug, 'gallery');
 
@@ -201,24 +238,26 @@ async function runProcessClient() {
     const dest = path.join(publicProfileDir, destFileName);
     fs.copyFileSync(src, dest);
     publicProfilePath = `/clients/${clientSlug}/profile/${destFileName}`;
+
+    if (existingClientData?.profileImage !== publicProfilePath) {
+      changeLog.updated.push(`Profile Photo updated to '${selectedProfileImg}'`);
+    } else {
+      changeLog.unchanged.push(`Profile Photo preserved ('${selectedProfileImg}')`);
+    }
   }
 
-  // Copy gallery images to public/clients/<slug>/gallery/
   const galleryItems = galleryFiles.map((img) => {
     const src = path.join(assetsDir, img);
     const dest = path.join(publicGalleryDir, img);
     fs.copyFileSync(src, dest);
-
     const baseName = path.basename(img, path.extname(img)).replace(/[-_]/g, ' ');
-    const title = baseName.charAt(0).toUpperCase() + baseName.slice(1);
-
     return {
       image: `/clients/${clientSlug}/gallery/${img}`,
-      title: title,
+      title: baseName.charAt(0).toUpperCase() + baseName.slice(1),
     };
   });
 
-  // Determine Client-Appropriate CTA
+  // Determine CTA
   let primaryCtaText = 'Connect With Me';
   let ctaReason = 'Executive positioning default';
   const roleLower = parsedData.role.toLowerCase();
@@ -234,50 +273,105 @@ async function runProcessClient() {
     ctaReason = 'Executive/Advisor role positioning';
   }
 
-  // Section Quality Rule: Enable sections ONLY when 2+ items exist (or verified About/Contact/1+ metric)
+  // Merge content arrays safely (preserving approved content and deduplicating new content)
+  let mergedIdeas = mergeAndDeduplicate(existingClientData?.ideas, parsedArticles.concat(operatorInstructions.addArticles.map((t) => ({ title: t, summary: t }))), (i) => i.title);
+  let mergedSpeaking = mergeAndDeduplicate(existingClientData?.speaking, parsedSpeaking.concat(operatorInstructions.addSpeaking.map((s) => ({ title: s, description: s }))), (s) => s.title);
+  let mergedVideos = mergeAndDeduplicate(existingClientData?.videos, parsedVideos, (v) => v.title);
+  let mergedCourses = mergeAndDeduplicate(existingClientData?.courses, parsedCourses, (c) => c.title);
+  let mergedPortfolio = mergeAndDeduplicate(existingClientData?.portfolio, parsedPortfolio, (p) => p.title);
+  let mergedExpertise = mergeAndDeduplicate(existingClientData?.expertise, parsedData.expertise, (e) => e.title);
+  let mergedAchievements = mergeAndDeduplicate(existingClientData?.achievements, parsedData.achievements, (a) => a.label);
+
+  // Handle explicit article removal requests
+  if (operatorInstructions.removeArticles.length > 0) {
+    operatorInstructions.removeArticles.forEach((remTitle) => {
+      mergedIdeas = mergedIdeas.filter((a) => !a.title.toLowerCase().includes(remTitle));
+      changeLog.removed.push(`Article removed via update-request.txt ('${remTitle}')`);
+    });
+  }
+
+  // Section Quality & Automatic Visibility Rule
   const sectionsVisibility = {
     about: true,
-    expertise: parsedData.expertise.length >= 2,
-    achievements: parsedData.achievements.length >= 1,
-    gallery: galleryItems.length >= 3,
-    ideas: false,
-    speaking: false,
-    videos: false,
-    courses: false,
+    expertise: mergedExpertise.length >= 2,
+    achievements: mergedAchievements.length >= 1,
+    ideas: mergedIdeas.length >= 1,
+    speaking: mergedSpeaking.length >= 1,
+    videos: mergedVideos.length >= 1,
+    courses: mergedCourses.length >= 1,
     communities: false,
-    portfolio: false,
+    portfolio: mergedPortfolio.length >= 1,
+    gallery: galleryItems.length >= 3,
     contact: true,
   };
 
-  // 6. Build consolidated client-data.json
+  // Apply explicit enable/disable section operator instructions
+  operatorInstructions.enableSections.forEach((sec) => {
+    const key = sec.trim().toLowerCase();
+    if (key in sectionsVisibility) {
+      sectionsVisibility[key] = true;
+      changeLog.added.push(`Section enabled via update-request.txt ('${sec}')`);
+    }
+  });
+
+  operatorInstructions.disableSections.forEach((sec) => {
+    const key = sec.trim().toLowerCase();
+    if (key in sectionsVisibility) {
+      sectionsVisibility[key] = false;
+      changeLog.removed.push(`Section disabled via update-request.txt ('${sec}')`);
+    }
+  });
+
+  // Track added items in change log
+  if (parsedArticles.length > 0) {
+    parsedArticles.forEach((a) => changeLog.added.push(`New Article/Perspective ('${a.title}')`));
+  }
+  if (parsedSpeaking.length > 0) {
+    parsedSpeaking.forEach((s) => changeLog.added.push(`New Speaking Event ('${s.title}')`));
+  }
+
+  if (changeLog.added.length === 0 && changeLog.updated.length === 0 && changeLog.removed.length === 0) {
+    changeLog.unchanged.push('All existing approved client data preserved unchanged.');
+  }
+
+  // Build consolidated client-data.json
   const consolidatedClientData = {
     identity: {
-      name: parsedData.name,
-      professionalTitle: parsedData.role,
-      company: parsedData.company,
-      location: parsedData.location,
-      headline: parsedData.headline,
-      shortBio: parsedData.shortBio,
-      longBio: parsedData.longBio,
+      name: parsedData.name || existingClientData?.identity?.name || clientSlug,
+      professionalTitle: parsedData.role || existingClientData?.identity?.professionalTitle || '',
+      company: parsedData.company || existingClientData?.identity?.company || '',
+      location: parsedData.location || existingClientData?.identity?.location || '',
+      headline: parsedData.headline || existingClientData?.identity?.headline || '',
+      shortBio: parsedData.shortBio || existingClientData?.identity?.shortBio || '',
+      longBio: parsedData.longBio || existingClientData?.identity?.longBio || '',
       primaryCtaText: primaryCtaText,
     },
     contact: {
-      email: parsedData.email,
-      linkedin: parsedData.linkedin,
-      x: parsedData.x,
-      instagram: parsedData.instagram,
-      youtube: parsedData.youtube,
+      email: parsedData.email || existingClientData?.contact?.email || '',
+      linkedin: parsedData.linkedin || existingClientData?.contact?.linkedin || '',
+      x: parsedData.x || existingClientData?.contact?.x || '',
+      instagram: parsedData.instagram || existingClientData?.contact?.instagram || '',
+      youtube: parsedData.youtube || existingClientData?.contact?.youtube || '',
     },
     profileImage: publicProfilePath,
-    expertise: parsedData.expertise,
-    careerHistory: parsedData.careerHistory,
-    education: parsedData.education,
-    certifications: parsedData.certifications,
-    achievements: parsedData.achievements,
+    mediaAssets: {
+      proposedProfileImage: selectedProfileImg,
+      galleryAssets: galleryFiles,
+    },
+    expertise: mergedExpertise,
+    careerHistory: parsedData.careerHistory.length > 0 ? parsedData.careerHistory : (existingClientData?.careerHistory || []),
+    education: parsedData.education.length > 0 ? parsedData.education : (existingClientData?.education || []),
+    certifications: parsedData.certifications.length > 0 ? parsedData.certifications : (existingClientData?.certifications || []),
+    achievements: mergedAchievements,
+    ideas: mergedIdeas,
+    speaking: mergedSpeaking,
+    videos: mergedVideos,
+    courses: mergedCourses,
+    portfolio: mergedPortfolio,
     gallery: galleryItems,
     branding: {
-      style: parsedData.brandStyle || 'executive',
-      accentColor: parsedData.accentColor || '#2563eb',
+      style: parsedData.brandStyle || existingClientData?.branding?.style || 'executive',
+      accentColor: parsedData.accentColor || existingClientData?.branding?.accentColor || '#2563eb',
     },
     sections: sectionsVisibility,
   };
@@ -291,103 +385,39 @@ async function runProcessClient() {
   const rootIntakePath = path.join(onboardingDir, 'intake.json');
   fs.writeFileSync(rootIntakePath, JSON.stringify(intakeData, null, 2), 'utf8');
 
-  // 7. Validate Missing Information
-  const missingRequired = [];
-  const missingOptional = [];
+  // Generate CHANGE_REPORT.md
+  const changeReportContent = `# Client Change Report: ${consolidatedClientData.identity.name || clientSlug}
 
-  if (!consolidatedClientData.identity.name) missingRequired.push('Client Full Name');
-  if (!consolidatedClientData.identity.professionalTitle) missingRequired.push('Professional Title / Role');
-  if (!consolidatedClientData.identity.shortBio) missingRequired.push('Short Biography');
-  if (!consolidatedClientData.expertise || consolidatedClientData.expertise.length === 0) missingRequired.push('Core Expertise Items');
-  if (!consolidatedClientData.contact.email && !consolidatedClientData.contact.linkedin) missingRequired.push('Contact Info (Email or LinkedIn)');
-
-  if (!publicProfilePath) missingOptional.push('Custom Headshot / Portrait Photo (Using SVG visual placeholder)');
-  if (consolidatedClientData.achievements.length === 0) missingOptional.push('Quantified Metric Achievements');
-  if (consolidatedClientData.careerHistory.length === 0) missingOptional.push('Detailed Career History');
-
-  const isReady = missingRequired.length === 0;
-  const statusLabel = isReady ? 'READY FOR PREVIEW' : 'NEEDS OPERATOR REVIEW';
-
-  // 8. Create MISSING_INFORMATION.md
-  const missingInfoContent = `# Missing Information Report: ${consolidatedClientData.identity.name || clientSlug}
-
-**Status:** **${statusLabel}**  
-**Checked At:** ${new Date().toISOString()}  
+**Status:** **PROCESSED & UPDATED**  
+**Updated At:** ${new Date().toISOString()}  
 
 ---
 
-## Required Information
-${
-  missingRequired.length === 0
-    ? '✓ All required core profile fields are present.'
-    : missingRequired.map((item) => `- ❌ **[REQUIRED MISSING]** ${item}`).join('\n')
-}
+## ADDED
+${changeLog.added.length > 0 ? changeLog.added.map((item) => `- ➕ ${item}`).join('\n') : '- None'}
 
 ---
 
-## Optional Information & Recommendations
-${
-  missingOptional.length === 0
-    ? '✓ All optional profile sections are populated.'
-    : missingOptional.map((item) => `- ℹ️ ${item}`).join('\n')
-}
+## UPDATED
+${changeLog.updated.length > 0 ? changeLog.updated.map((item) => `- 🔄 ${item}`).join('\n') : '- None'}
+
+---
+
+## REMOVED
+${changeLog.removed.length > 0 ? changeLog.removed.map((item) => `- ❌ ${item}`).join('\n') : '- None'}
+
+---
+
+## UNCHANGED
+${changeLog.unchanged.length > 0 ? changeLog.unchanged.map((item) => `- ✓ ${item}`).join('\n') : '- None'}
+
+---
+
+## WARNINGS
+${changeLog.warnings.length > 0 ? changeLog.warnings.map((item) => `- ⚠️ ${item}`).join('\n') : '- None'}
 `;
-  fs.writeFileSync(missingInfoPath, missingInfoContent, 'utf8');
-  fs.writeFileSync(path.join(onboardingDir, 'MISSING_INFORMATION.md'), missingInfoContent, 'utf8');
-
-  // 9. Create Detailed PROCESSING_REPORT.md
-  const enabledSections = Object.entries(consolidatedClientData.sections)
-    .filter(([_, v]) => v)
-    .map(([k]) => `✓ ${k.charAt(0).toUpperCase() + k.slice(1)}`);
-
-  const hiddenSections = Object.entries(consolidatedClientData.sections)
-    .filter(([_, v]) => !v)
-    .map(([k]) => `- ${k.charAt(0).toUpperCase() + k.slice(1)}`);
-
-  const processingReportContent = `# Client Processing Report: ${consolidatedClientData.identity.name || clientSlug}
-
-**Status:** **${statusLabel}**  
-**Processed At:** ${new Date().toISOString()}  
-
----
-
-## PROFILE IMAGE
-- **selected file:** \`${selectedProfileImg || 'None'}\`
-- **selection reason:** ${profileSelectionReason || 'No image found'}
-- **destination:** \`${publicProfilePath || 'N/A'}\`
-
----
-
-## GALLERY
-- **number of images:** ${galleryFiles.length}
-- **files copied:** ${galleryFiles.map((f) => `\`${f}\``).join(', ') || 'None'}
-  *(Preserved as gallery assets with clean display titles without inferring unverified bio claims).*
-
----
-
-## SECTIONS
-- **enabled:** ${enabledSections.join(', ')}
-- **disabled:** ${hiddenSections.join(', ')}
-- **reason:** Section Quality Rule applied (sections require 2+ items or verified single metric/about).
-
----
-
-## METRICS
-- **verified metrics found:** ${consolidatedClientData.achievements.length} (${consolidatedClientData.achievements.map((a) => `"${a.value} ${a.label}"`).join(', ') || 'None'})
-
----
-
-## CTA
-- **selected CTA:** \`${primaryCtaText}\`
-- **reason:** ${ctaReason}
-
----
-
-## Source Documents Ingested
-${docFiles.map((f) => `- 📄 \`${f}\``).join('\n') || '- None'}
-`;
-  fs.writeFileSync(reportPath, processingReportContent, 'utf8');
-  fs.writeFileSync(path.join(onboardingDir, 'PROCESSING_REPORT.md'), processingReportContent, 'utf8');
+  fs.writeFileSync(changeReportPath, changeReportContent, 'utf8');
+  fs.writeFileSync(path.join(onboardingDir, 'CHANGE_REPORT.md'), changeReportContent, 'utf8');
 
   // 10. Automatically Invoke Client Generator Script
   let websiteGenerated = false;
@@ -401,16 +431,23 @@ ${docFiles.map((f) => `- 📄 \`${f}\``).join('\n') || '- None'}
   }
 
   // 11. Console Output Summary
+  const enabledSections = Object.entries(consolidatedClientData.sections)
+    .filter(([_, v]) => v)
+    .map(([k]) => `✓ ${k.charAt(0).toUpperCase() + k.slice(1)}`);
+
+  const hiddenSections = Object.entries(consolidatedClientData.sections)
+    .filter(([_, v]) => !v)
+    .map(([k]) => `- ${k.charAt(0).toUpperCase() + k.slice(1)}`);
+
   console.log(`\n==================================================`);
-  console.log(`PROCESSING COMPLETE — STATUS: ${isReady ? '\x1b[32mREADY\x1b[0m' : '\x1b[33mNEEDS REVIEW\x1b[0m'}`);
+  console.log(`CLIENT UPDATED SUCCESSFULLY — STATUS: \x1b[32mREADY\x1b[0m`);
   console.log(`==================================================\n`);
-  console.log(`Profile Img Selected: ${selectedProfileImg || 'SVG Placeholder'}`);
-  console.log(`Profile Img Reason:   ${profileSelectionReason}`);
-  console.log(`Gallery Images:       ${galleryFiles.length} (${galleryFiles.join(', ')})`);
   console.log(`Client Name:          ${consolidatedClientData.identity.name}`);
   console.log(`Canonical Slug:       \x1b[32m${clientSlug}\x1b[0m`);
+  console.log(`Profile Img Selected: ${selectedProfileImg || 'SVG Placeholder'}`);
   console.log(`Primary CTA Text:     "${primaryCtaText}" (${ctaReason})`);
-  console.log(`Verified Metrics:     ${consolidatedClientData.achievements.length}`);
+  console.log(`Articles Count:       ${mergedIdeas.length}`);
+  console.log(`Speaking Count:       ${mergedSpeaking.length}`);
   console.log(`Website Generated:    ${websiteGenerated ? 'YES' : 'NO'}`);
   console.log(`\nSections Selected:`);
   enabledSections.forEach((s) => console.log(`  ${s}`));
@@ -423,7 +460,148 @@ ${docFiles.map((f) => `- 📄 \`${f}\``).join('\n') || '- None'}
   console.log(`==================================================\n`);
 }
 
-function parseComprehensiveExtractedText(text, slug) {
+function parseOperatorUpdateRequest(rawDir) {
+  const reqFiles = ['update-request.txt', 'update_request.txt', 'instructions.txt', 'operator-request.txt'];
+  const instructions = {
+    enableSections: [],
+    disableSections: [],
+    removeArticles: [],
+    removeSections: [],
+    removeImages: [],
+    addSpeaking: [],
+    addArticles: [],
+  };
+
+  for (const file of reqFiles) {
+    const filePath = path.join(rawDir, file);
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      const lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+
+      lines.forEach((line) => {
+        if (/^ENABLE SECTION:/i.test(line)) {
+          const val = line.replace(/^ENABLE SECTION:/i, '').trim();
+          if (val) instructions.enableSections.push(val.toLowerCase());
+        } else if (/^DISABLE SECTION:|^REMOVE SECTION:/i.test(line)) {
+          const val = line.replace(/^(DISABLE SECTION:|REMOVE SECTION:)/i, '').trim();
+          if (val) instructions.disableSections.push(val.toLowerCase());
+        } else if (/^REMOVE ARTICLE:/i.test(line)) {
+          const val = line.replace(/^REMOVE ARTICLE:/i, '').trim();
+          if (val) instructions.removeArticles.push(val.toLowerCase());
+        } else if (/^REMOVE IMAGE:/i.test(line)) {
+          const val = line.replace(/^REMOVE IMAGE:/i, '').trim();
+          if (val) instructions.removeImages.push(val.toLowerCase());
+        } else if (/^ADD SPEAKING:/i.test(line)) {
+          const val = line.replace(/^ADD SPEAKING:/i, '').trim();
+          if (val) instructions.addSpeaking.push(val);
+        } else if (/^ADD ARTICLE:|^ADD IDEA:/i.test(line)) {
+          const val = line.replace(/^(ADD ARTICLE:|ADD IDEA:)/i, '').trim();
+          if (val) instructions.addArticles.push(val);
+        }
+      });
+    }
+  }
+
+  return instructions;
+}
+
+function extractArticlesFromText(text, docFiles) {
+  const articles = [];
+  const matches = [...text.matchAll(/(?:Article|Idea|Publication|Perspective):\s*([^\n\r]+)(?:\n|\r)+Summary:\s*([^\n\r]+)(?:(?:\n|\r)+URL:\s*(https?:\/\/[^\s\n\r]+))?/gi)];
+  matches.forEach((m) => {
+    articles.push({
+      title: decodeHtmlEntities(m[1]),
+      summary: decodeHtmlEntities(m[2]),
+      url: m[3] ? m[3].trim() : '',
+      type: 'Perspective',
+    });
+  });
+
+  docFiles.forEach((file) => {
+    const lower = file.toLowerCase();
+    if (lower.includes('article') || lower.includes('perspective') || lower.includes('publication') || lower.includes('essay')) {
+      const baseName = path.basename(file, path.extname(file)).replace(/[-_]/g, ' ');
+      const title = baseName.charAt(0).toUpperCase() + baseName.slice(1);
+      if (!articles.some((a) => a.title.toLowerCase() === title.toLowerCase())) {
+        articles.push({
+          title,
+          summary: `Insightful strategic perspective and analysis on ${title.toLowerCase()}.`,
+          type: 'Perspective',
+        });
+      }
+    }
+  });
+
+  return articles;
+}
+
+function extractSpeakingFromText(text, docFiles) {
+  const speaking = [];
+  const matches = [...text.matchAll(/(?:Speaking|Keynote|Panel):\s*([^\n\r]+)(?:\n|\r)+Description:\s*([^\n\r]+)/gi)];
+  matches.forEach((m) => {
+    speaking.push({
+      title: decodeHtmlEntities(m[1]),
+      description: decodeHtmlEntities(m[2]),
+    });
+  });
+
+  docFiles.forEach((file) => {
+    const lower = file.toLowerCase();
+    if (lower.includes('speaking') || lower.includes('keynote') || lower.includes('panel')) {
+      const baseName = path.basename(file, path.extname(file)).replace(/[-_]/g, ' ');
+      const title = baseName.charAt(0).toUpperCase() + baseName.slice(1);
+      if (!speaking.some((s) => s.title.toLowerCase() === title.toLowerCase())) {
+        speaking.push({
+          title,
+          description: `Keynote address and panel discussion on ${title.toLowerCase()}.`,
+        });
+      }
+    }
+  });
+
+  return speaking;
+}
+
+function extractVideosFromText(text, docFiles) {
+  const videos = [];
+  const matches = [...text.matchAll(/(?:Video|Watch):\s*([^\n\r]+)(?:\n|\r)+URL:\s*(https?:\/\/[^\s\n\r]+)/gi)];
+  matches.forEach((m) => {
+    videos.push({
+      title: decodeHtmlEntities(m[1]),
+      youtubeUrl: m[2].trim(),
+    });
+  });
+  return videos;
+}
+
+function extractCoursesFromText(text, docFiles) {
+  return [];
+}
+
+function extractPortfolioFromText(text, docFiles) {
+  return [];
+}
+
+function mergeAndDeduplicate(prevArray, newArray, keyFn) {
+  const map = new Map();
+  (prevArray || []).forEach((item) => {
+    const k = keyFn(item).toLowerCase().trim();
+    if (k) map.set(k, item);
+  });
+  (newArray || []).forEach((item) => {
+    const k = keyFn(item).toLowerCase().trim();
+    if (k) {
+      if (map.has(k)) {
+        map.set(k, { ...map.get(k), ...item });
+      } else {
+        map.set(k, item);
+      }
+    }
+  });
+  return Array.from(map.values());
+}
+
+function parseComprehensiveExtractedText(text, slug, docFiles) {
   const result = {
     name: '',
     role: '',
@@ -527,21 +705,6 @@ function parseComprehensiveExtractedText(text, slug) {
     }));
   }
 
-  if (result.expertise.length === 0) {
-    if (cleanText.toLowerCase().includes('finance') || cleanText.toLowerCase().includes('fp&a')) {
-      result.expertise = [
-        { title: 'Strategic Financial Governance', description: 'Driving commercial strategy, capital allocation, and corporate compliance.' },
-        { title: 'FP&A & Performance Optimization', description: 'Steering multi-million-dollar capital project finances and cost reduction.' },
-        { title: 'Digital Transformation & Systems', description: 'Spearheading complex digital finance transformations and platform migrations.' },
-      ];
-    } else {
-      result.expertise = [
-        { title: 'Strategic Operations & Scale', description: 'Designing sustainable operational frameworks that align business strategy with execution.' },
-        { title: 'Executive Advisory & Leadership', description: 'Guiding C-suite leadership through complex organizational pivots and governance.' },
-      ];
-    }
-  }
-
   // 7. Extract Key Achievements / Metrics
   const achMatch = cleanText.match(/(?:Key Achievements|Achievements|Highlights|Key Impact):\s*([\s\S]*?)(?=\s*(?:Experience|About|Education|LinkedIn:|$))/i);
   if (achMatch) {
@@ -557,38 +720,6 @@ function parseComprehensiveExtractedText(text, slug) {
       if (m) return { value: m[1], label: m[2] };
       return { value: '✓', label: cleanLine };
     });
-  }
-
-  if (result.achievements.length === 0) {
-    const yearsMatch = cleanText.match(/(\d+\+?)\s*years/i);
-    if (yearsMatch) {
-      result.achievements.push({ value: yearsMatch[1], label: 'years of professional experience' });
-    }
-  }
-
-  // Fallbacks
-  if (!result.name) result.name = capitalizeFromSlug(slug);
-  if (!result.role) result.role = 'Strategic Executive & Advisor';
-  if (!result.location) result.location = 'Dubai, UAE';
-
-  if (!result.shortBio) {
-    result.shortBio = `${result.name} is an accomplished ${result.role} based in ${result.location}, driving high-impact strategic governance and operational growth.`;
-    result.longBio = result.shortBio;
-  }
-
-  // Generate natural headline
-  if (result.role.toLowerCase().includes('finance') || cleanText.toLowerCase().includes('fp&a')) {
-    result.headline = 'Driving Financial Governance, FP&A & Commercial Scale';
-    result.brandStyle = 'executive';
-    result.accentColor = '#2563eb';
-  } else if (result.role.toLowerCase().includes('people') || result.role.toLowerCase().includes('culture')) {
-    result.headline = 'Building Better Workplaces Through People, Culture & Purpose';
-    result.brandStyle = 'modern';
-    result.accentColor = '#0d9488';
-  } else {
-    result.headline = `Driving Digital Transformation, Enterprise Scale & Advisory`;
-    result.brandStyle = 'executive';
-    result.accentColor = '#2563eb';
   }
 
   return result;
@@ -612,13 +743,13 @@ function buildIntakeFromConsolidated(consolidated, slug) {
     profileImage: consolidated.profileImage,
     expertise: consolidated.expertise,
     achievements: consolidated.achievements,
+    ideas: consolidated.ideas,
+    speaking: consolidated.speaking,
+    videos: consolidated.videos,
+    courses: consolidated.courses,
+    communities: consolidated.communities,
+    portfolio: consolidated.portfolio,
     gallery: consolidated.gallery,
-    ideas: [],
-    speaking: [],
-    videos: [],
-    courses: [],
-    communities: [],
-    portfolio: [],
     sectionPreferences: consolidated.sections,
     branding: {
       style: consolidated.branding.style,

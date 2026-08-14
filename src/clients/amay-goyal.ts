@@ -6,11 +6,11 @@ export const amayGoyalClient: ClientProfile = {
   name: "Jeeboy Cherian Koshy",
   professionalTitle: "Strategic Finance Director",
   headline: "Driving Financial Governance, FP&A & Commercial Scale",
-  subHeadline: "Jeeboy Cherian Koshy is an accomplished Strategic Finance Director based in Dubai, UAE, driving high-impact strategic governance and operational growth.",
+  subHeadline: "Strategic analysis on integrating AI into capital allocation and financial governance. URL: https://example.com/future-ai-finance",
   location: "Dubai, UAE",
   profileImage: "/clients/amay-goyal/profile/profile.jpg",
-  shortBio: "Jeeboy Cherian Koshy is an accomplished Strategic Finance Director based in Dubai, UAE, driving high-impact strategic governance and operational growth.",
-  longBio: "Jeeboy Cherian Koshy is an accomplished Strategic Finance Director based in Dubai, UAE, driving high-impact strategic governance and operational growth.",
+  shortBio: "Strategic analysis on integrating AI into capital allocation and financial governance. URL: https://example.com/future-ai-finance",
+  longBio: "Strategic analysis on integrating AI into capital allocation and financial governance.\nURL: https://example.com/future-ai-finance\n\n--- SOURCE: update-request.txt (TXT/MD) ---\nREMOVE ARTICLE:\nArticle future of ai finance",
   primaryCtaText: "Advisory Inquiry",
 
   brand: {
@@ -68,7 +68,19 @@ export const amayGoyalClient: ClientProfile = {
     "title": "Spain"
   }
 ],
-  ideas: [],
+  ideas: [
+  {
+    "title": "Future of AI in Corporate Finance",
+    "summary": "Strategic analysis on integrating AI into capital allocation and financial governance.",
+    "url": "https://example.com/future-ai-finance",
+    "type": "Perspective"
+  },
+  {
+    "title": "Article future of ai finance",
+    "summary": "Insightful strategic perspective and analysis on article future of ai finance.",
+    "type": "Perspective"
+  }
+],
   speaking: [],
   videos: [],
   courses: [],
@@ -83,7 +95,7 @@ export const amayGoyalClient: ClientProfile = {
 
   seo: {
     title: "Jeeboy Cherian Koshy | Strategic Finance Director",
-    description: "Jeeboy Cherian Koshy is an accomplished Strategic Finance Director based in Dubai, UAE, driving high-impact strategic governance and operational growth.",
+    description: "Strategic analysis on integrating AI into capital allocation and financial governance. URL: https://example.com/future-ai-finance",
     keywords: ["Jeeboy Cherian Koshy","Strategic Finance Director","Executive"],
   },
 
@@ -92,7 +104,7 @@ export const amayGoyalClient: ClientProfile = {
   "expertise": true,
   "achievements": true,
   "gallery": true,
-  "ideas": false,
+  "ideas": true,
   "speaking": false,
   "videos": false,
   "courses": false,
