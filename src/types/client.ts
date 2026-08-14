@@ -6,6 +6,7 @@ export interface ExpertiseItem {
 export interface AchievementItem {
   value: string;
   label: string;
+  sublabel?: string;
 }
 
 export interface IdeaItem {
@@ -14,18 +15,25 @@ export interface IdeaItem {
   image?: string;
   url?: string;
   category?: string;
+  type?: 'Article' | 'LinkedIn Post' | 'Research' | 'Podcast' | 'Perspective' | string;
+  date?: string;
 }
 
 export interface SpeakingItem {
   title: string;
   description: string;
   image?: string;
+  date?: string;
+  location?: string;
+  type?: 'Keynote' | 'Panel' | 'Moderation' | 'Podcast' | string;
 }
 
 export interface VideoItem {
   title: string;
   thumbnail?: string;
   youtubeUrl: string;
+  duration?: string;
+  category?: string;
 }
 
 export interface CourseItem {
@@ -41,6 +49,7 @@ export interface CommunityItem {
   description: string;
   image?: string;
   url?: string;
+  role?: string;
 }
 
 export interface PortfolioItem {
@@ -48,6 +57,8 @@ export interface PortfolioItem {
   image?: string;
   description: string;
   url?: string;
+  category?: string;
+  metrics?: string;
 }
 
 export interface ClientSocials {
@@ -60,15 +71,19 @@ export interface ClientSocials {
 
 export interface ClientBrand {
   accentColor: string;
-  heroVariant?: 'executive' | 'modern' | 'minimal' | string;
-  aboutVariant?: 'split' | 'centered' | 'narrative' | string;
-  portfolioVariant?: 'grid' | 'cards' | 'list' | string;
+  secondaryColor?: string;
+  heroVariant: 'executive' | 'modern';
+  aboutVariant?: 'executive-split' | 'modern-narrative';
+  expertiseVariant?: 'editorial-list' | 'cards-grid';
+  achievementsVariant?: 'executive-stats' | 'modern-strip';
+  portfolioVariant?: 'case-study-cards' | 'minimal-grid';
 }
 
 export interface ClientContact {
   email: string;
   location?: string;
   contactFormEnabled: boolean;
+  officeHours?: string;
 }
 
 export interface ClientSEO {
@@ -103,12 +118,17 @@ export interface ClientProfile {
   profileImage?: string;
   shortBio: string;
   longBio: string;
+  storyHeadline?: string;
+  philosophyQuote?: string;
 
   // Brand Styling & Layout Variants
   brand: ClientBrand;
 
   // Social Links
   social: ClientSocials;
+
+  // Credibility Header Label
+  credibilityLabel?: string;
 
   // Content Sections
   expertise?: ExpertiseItem[];

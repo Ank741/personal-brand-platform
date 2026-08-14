@@ -5,18 +5,24 @@ export const alexMorganClient: ClientProfile = {
   domain: 'alexmorgan.com',
   name: 'Alex Morgan',
   professionalTitle: 'Business Transformation Leader',
-  headline: 'Navigating Enterprise Growth & Digital Modernization',
-  subHeadline: 'Empowering Fortune 500 leadership to scale operations, modernize core infrastructure, and build high-performance organizations.',
+  headline: 'Navigating Enterprise Scale, Operating Strategy & Modernization',
+  subHeadline: 'Advising executive boards and leadership teams on multi-market pivots, capital allocation, and resilient governance.',
   location: 'Chicago, IL',
   profileImage: '/clients/alex-morgan/profile/alex.jpg',
-  shortBio: 'Executive strategist with 15+ years driving global enterprise transformation and operational excellence.',
-  longBio: 'Alex Morgan specializes in guiding boardrooms and leadership teams through complex organizational pivots, merger integrations, and modern technology adoption. With a track record spanning major industrial sectors, Alex brings clarity to complex market shifts and builds resilient leadership frameworks.',
+  shortBio: 'Executive strategist with 15+ years guiding Fortune 500 boards through complex organizational shifts and digital operating model modernization.',
+  longBio: 'Alex Morgan operates at the intersection of enterprise architecture, operational governance, and technology investment strategy. Having led post-merger integrations and operating pivots across major industrial sectors, Alex brings structural clarity to complex market headwinds and aligns cross-functional leadership teams behind long-term enterprise value.',
+  storyHeadline: 'Building Resilient Enterprises in Times of Rapid Industry Shifts',
+  philosophyQuote: 'True organizational scale is not built by adding complexity, but by mastering operational clarity and aligning capital behind disciplined execution.',
+  credibilityLabel: 'Verified Leadership Track Record',
 
   brand: {
-    accentColor: '#2563eb', // Executive Sapphire
+    accentColor: '#2563eb', // Royal Executive Blue
+    secondaryColor: '#0f172a',
     heroVariant: 'executive',
-    aboutVariant: 'split',
-    portfolioVariant: 'cards',
+    aboutVariant: 'executive-split',
+    expertiseVariant: 'editorial-list',
+    achievementsVariant: 'executive-stats',
+    portfolioVariant: 'case-study-cards',
   },
 
   social: {
@@ -27,67 +33,88 @@ export const alexMorganClient: ClientProfile = {
 
   expertise: [
     {
-      title: 'Enterprise Architecture & Scale',
-      description: 'Designing sustainable operational frameworks that align business strategy with technological execution.',
+      title: 'Enterprise Operating Model Design',
+      description: 'Designing sustainable operational frameworks that align multi-market business strategy with technology execution.',
     },
     {
-      title: 'Change Governance & Leadership',
-      description: 'Guiding global teams through structural pivots with clear communication and empathetic change management.',
+      title: 'Change Governance & Leadership Alignment',
+      description: 'Guiding C-suite executives through complex organizational pivots with structured change communication.',
     },
     {
-      title: 'Strategic Capital Allocation',
-      description: 'Optimizing portfolio investments to maximize long-term shareholder value and digital efficiency.',
+      title: 'Post-Merger Integration & Optimization',
+      description: 'Harmonizing legacy architectures, operational workflows, and team structures during large-scale enterprise mergers.',
+    },
+    {
+      title: 'Strategic Capital & Asset Allocation',
+      description: 'Evaluating technology investments and modernization programs to maximize long-term enterprise resilience.',
     },
   ],
 
   achievements: [
-    { value: '15+', label: 'Years Transformation Experience' },
-    { value: '$450M+', label: 'Portfolio Modernization Value Created' },
-    { value: '40+', label: 'Global Enterprise Initiatives Led' },
+    { value: '15+', label: 'Years Advisory Experience', sublabel: 'Fortune 500 & Global Entities' },
+    { value: '$450M+', label: 'Portfolio Value Impacted', sublabel: 'Operating & Digital Scale' },
+    { value: '40+', label: 'Multi-Market Pivots Led', sublabel: 'Cross-functional Governance' },
+    { value: '100%', label: 'Board Alignment Success', sublabel: 'Post-Merger Integrations' },
   ],
 
   ideas: [
     {
-      title: 'The Blueprint for Legacy System Modernization',
-      summary: 'How legacy enterprises can dismantle technical debt without interrupting business-critical operations.',
-      category: 'Strategy',
+      title: 'The Blueprint for Legacy Infrastructure Modernization',
+      summary: 'How established enterprises dismantle technical debt without interrupting business-critical operations.',
+      category: 'Strategy & Scale',
+      type: 'Article',
+      date: 'January 2026',
       url: '#',
     },
     {
-      title: 'Leadership Alignment in Times of Rapid Market Shifts',
-      summary: 'Key consensus-building tactics for C-suite leaders navigating ambiguous industry headwinds.',
-      category: 'Leadership',
+      title: 'C-Suite Consensus in Unpredictable Markets',
+      summary: 'Tactics for building board alignment when navigating ambiguous macro-economic headwinds.',
+      category: 'Executive Leadership',
+      type: 'Perspective',
+      date: 'Fall 2025',
       url: '#',
     },
   ],
 
   speaking: [
     {
-      title: 'Keynote: Scalable Operational Excellence',
-      description: 'Annual Executive Summit — Delivering actionable insights on modernizing supply chains and enterprise workflows.',
+      title: 'Keynote: Scalable Enterprise Governance',
+      description: 'Global Business Summit — Delivering actionable insights on modernizing multi-national supply chains and operations.',
+      location: 'Chicago, IL',
+      date: 'Fall 2025',
+      type: 'Keynote',
     },
     {
       title: 'Panel: The Next Decade of Corporate Agility',
-      description: 'Global Business Leaders Forum — Strategies for fostering cross-functional alignment.',
+      description: 'Executive Leadership Forum — Strategies for cross-functional alignment and rapid decision-making.',
+      location: 'New York, NY',
+      date: 'Spring 2025',
+      type: 'Panel',
     },
   ],
 
   videos: [
     {
-      title: 'Fireside Chat: Enterprise Resilience in 2026',
+      title: 'Fireside Chat: Enterprise Operating Models in 2026',
       youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      duration: '24 mins',
+      category: 'Keynote Interview',
     },
   ],
 
   portfolio: [
     {
-      title: 'Global Supply Chain Modernization Framework',
-      description: 'Redesigned core logistics tracking across 12 regional hubs, improving throughput by 34%.',
+      title: 'Multi-Market Logistics Modernization',
+      description: 'Redesigned core supply chain operational architecture across 12 regional hubs, improving throughput and tracking clarity.',
+      category: 'Operational Scale',
+      metrics: '34% Throughput Gain',
       url: '#',
     },
     {
-      title: 'Post-Merger IT Integration Strategy',
-      description: 'Harmonized dual enterprise architectures for a multi-billion dollar entity within 9 months.',
+      title: 'Global Post-Merger Platform Integration',
+      description: 'Harmonized dual enterprise technology infrastructures for a multi-billion dollar entity within a 9-month timeframe.',
+      category: 'Mergers & Acquisitions',
+      metrics: '$18M Efficiency Optimization',
       url: '#',
     },
   ],
@@ -99,12 +126,13 @@ export const alexMorganClient: ClientProfile = {
     email: 'alex.morgan@fictional-domain.com',
     location: 'Chicago, IL',
     contactFormEnabled: true,
+    officeHours: 'Mon-Thu by Appointment',
   },
 
   seo: {
     title: 'Alex Morgan | Business Transformation Leader',
-    description: 'Official website of Alex Morgan, executive strategist in enterprise transformation, digital scale, and operational excellence.',
-    keywords: ['Business Transformation', 'Enterprise Leadership', 'Digital Modernization', 'Change Management'],
+    description: 'Official website of Alex Morgan, executive strategy advisor specializing in enterprise operating models and digital scale.',
+    keywords: ['Business Transformation', 'Enterprise Leadership', 'Digital Modernization', 'Executive Strategy'],
     ogImage: '/clients/alex-morgan/hero/og-image.png',
   },
 
@@ -115,8 +143,8 @@ export const alexMorganClient: ClientProfile = {
     ideas: true,
     speaking: true,
     videos: true,
-    courses: false, // Disabled for Alex
-    communities: false, // Disabled for Alex
+    courses: false,
+    communities: false,
     portfolio: true,
     contact: true,
   },
