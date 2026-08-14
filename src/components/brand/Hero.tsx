@@ -7,8 +7,18 @@ interface HeroProps {
 }
 
 export function Hero({ client }: HeroProps) {
-  const { name, professionalTitle, headline, subHeadline, location, social, brand, sections } = client;
+  const { name, professionalTitle, headline, subHeadline, location, profileImage, primaryCtaText, social, brand, sections } = client;
   const isExecutive = brand.heroVariant === 'executive';
+
+  const ctaLabel = primaryCtaText || (
+    professionalTitle.toLowerCase().includes('consultant')
+      ? 'Work With Me'
+      : professionalTitle.toLowerCase().includes('speaker')
+      ? 'Speaking Inquiry'
+      : professionalTitle.toLowerCase().includes('advisor')
+      ? 'Advisory Inquiry'
+      : 'Connect With Me'
+  );
 
   const getInitials = (fullName: string) => {
     return fullName
@@ -56,7 +66,7 @@ export function Hero({ client }: HeroProps) {
                     className="px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-white rounded shadow-lg transition-transform active:scale-95 hover:opacity-95"
                     style={{ backgroundColor: brand.accentColor }}
                   >
-                    Executive Advisory Inquiry
+                    {ctaLabel}
                   </a>
                 )}
                 {sections.about && (
@@ -64,7 +74,7 @@ export function Hero({ client }: HeroProps) {
                     href="#about"
                     className="px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-300 bg-slate-900 border border-slate-800 rounded hover:bg-slate-850 hover:text-white transition-colors"
                   >
-                    Read Leadership Profile
+                    Read Profile
                   </a>
                 )}
               </div>
@@ -91,21 +101,32 @@ export function Hero({ client }: HeroProps) {
 
             </div>
 
-            {/* Portrait / Signature Visual Area */}
+            {/* Portrait Area */}
             <div className="lg:col-span-5">
               <div className="relative group">
                 <div 
                   className="absolute -inset-1 rounded-xl opacity-20 blur-xl transition-opacity group-hover:opacity-40"
                   style={{ backgroundColor: brand.accentColor }}
                 />
-                <ImagePlaceholder
-                  alt={`${name} Signature Portrait`}
-                  aspectRatio="portrait"
-                  iconType="person"
-                  clientInitials={getInitials(name)}
-                  subtext="Portrait / Signature Visual"
-                  className="w-full bg-slate-900 border-slate-800 rounded-lg shadow-2xl"
-                />
+                {profileImage ? (
+                  <div className="relative overflow-hidden rounded-xl border border-slate-800 shadow-2xl bg-slate-900">
+                    <img
+                      src={profileImage}
+                      alt={`${name} Portrait`}
+                      className="w-full h-[460px] sm:h-[520px] object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-60" />
+                  </div>
+                ) : (
+                  <ImagePlaceholder
+                    alt={`${name} Signature Portrait`}
+                    aspectRatio="portrait"
+                    iconType="person"
+                    clientInitials={getInitials(name)}
+                    subtext="Portrait / Signature Visual"
+                    className="w-full bg-slate-900 border-slate-800 rounded-lg shadow-2xl"
+                  />
+                )}
               </div>
             </div>
 
@@ -115,7 +136,7 @@ export function Hero({ client }: HeroProps) {
     );
   }
 
-  // Modern Warm Variant (Dr. Maya Verma)
+  // Modern Warm Variant
   return (
     <section className="relative py-24 lg:py-32 bg-gradient-to-b from-teal-50/50 via-white to-white overflow-hidden">
       <div className="max-w-6xl mx-auto px-6">
@@ -149,7 +170,7 @@ export function Hero({ client }: HeroProps) {
                   className="px-7 py-3.5 text-sm font-semibold text-white rounded-full shadow-md hover:shadow-lg transition-all"
                   style={{ backgroundColor: brand.accentColor }}
                 >
-                  Connect with {name.split(' ')[0]}
+                  {ctaLabel}
                 </a>
               )}
               {sections.about && (
@@ -157,7 +178,7 @@ export function Hero({ client }: HeroProps) {
                   href="#about"
                   className="px-7 py-3.5 text-sm font-semibold text-teal-900 bg-white border border-teal-200 rounded-full shadow-sm hover:bg-teal-50 transition-colors"
                 >
-                  Read Personal Story & Vision
+                  Read Story & Vision
                 </a>
               )}
             </div>
@@ -188,14 +209,24 @@ export function Hero({ client }: HeroProps) {
                 className="absolute -inset-2 rounded-3xl opacity-20 blur-2xl transition-opacity group-hover:opacity-30"
                 style={{ backgroundColor: brand.accentColor }}
               />
-              <ImagePlaceholder
-                alt={`${name} Signature Portrait`}
-                aspectRatio="portrait"
-                iconType="person"
-                clientInitials={getInitials(name)}
-                subtext="Portrait / Signature Visual"
-                className="w-full bg-white shadow-xl rounded-3xl border border-teal-100/90"
-              />
+              {profileImage ? (
+                <div className="relative overflow-hidden rounded-3xl border border-teal-100/90 shadow-xl bg-white">
+                  <img
+                    src={profileImage}
+                    alt={`${name} Portrait`}
+                    className="w-full h-[460px] sm:h-[520px] object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+              ) : (
+                <ImagePlaceholder
+                  alt={`${name} Signature Portrait`}
+                  aspectRatio="portrait"
+                  iconType="person"
+                  clientInitials={getInitials(name)}
+                  subtext="Portrait / Signature Visual"
+                  className="w-full bg-white shadow-xl rounded-3xl border border-teal-100/90"
+                />
+              )}
             </div>
           </div>
 

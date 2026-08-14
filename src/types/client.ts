@@ -61,6 +61,11 @@ export interface PortfolioItem {
   metrics?: string;
 }
 
+export interface GalleryItem {
+  image: string;
+  title?: string;
+}
+
 export interface ClientSocials {
   linkedin?: string;
   instagram?: string;
@@ -103,6 +108,7 @@ export interface ClientSectionVisibility {
   courses: boolean;
   communities: boolean;
   portfolio: boolean;
+  gallery?: boolean;
   contact: boolean;
 }
 
@@ -120,6 +126,7 @@ export interface ClientProfile {
   longBio: string;
   storyHeadline?: string;
   philosophyQuote?: string;
+  primaryCtaText?: string;
 
   // Brand Styling & Layout Variants
   brand: ClientBrand;
@@ -139,6 +146,7 @@ export interface ClientProfile {
   courses?: CourseItem[];
   communities?: CommunityItem[];
   portfolio?: PortfolioItem[];
+  gallery?: GalleryItem[];
 
   // Contact Info
   contact: ClientContact;

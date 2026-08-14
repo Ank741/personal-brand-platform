@@ -7,10 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "create-client": "node scripts/create-client.js"
+    "onboard": "node scripts/onboard.js",
+    "process-client": "node scripts/process-client.js",
+    "create-client": "node scripts/create-client.js",
+    "prepare-client": "node scripts/prepare-client.js"
   },
   "dependencies": {
     "next": "16.3.1",
+    "pdf-parse": "^2.4.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },

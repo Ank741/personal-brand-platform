@@ -1,0 +1,105 @@
+{
+  "identity": {
+    "name": "Rohan Kapoor",
+    "professionalTitle": "Founder & Managing Director, Nexora Advisory",
+    "location": "Dubai, UAE",
+    "headline": "Driving Digital Transformation, Enterprise Scale & AI Adoption",
+    "shortBio": "Rohan Kapoor is a business transformation and technology leader with over 16 years of experience across India and the Middle East. He works with organisations on digital transformation, enterprise technology, AI adoption and business strategy.",
+    "longBio": "I believe technology should solve real business problems rather than simply introduce more technology. My work focuses on connecting business strategy, people and technology to create sustainable transformation."
+  },
+  "contact": {
+    "email": "rohan@example.com",
+    "linkedin": "https://www.linkedin.com/"
+  },
+  "expertise": [
+    {
+      "title": "Digital Transformation",
+      "description": "Advising leadership teams on digital transformation and strategic execution."
+    },
+    {
+      "title": "Artificial Intelligence",
+      "description": "Advising leadership teams on artificial intelligence and strategic execution."
+    },
+    {
+      "title": "Enterprise Technology",
+      "description": "Advising leadership teams on enterprise technology and strategic execution."
+    },
+    {
+      "title": "Business Strategy",
+      "description": "Advising leadership teams on business strategy and strategic execution."
+    },
+    {
+      "title": "Leadership",
+      "description": "Advising leadership teams on leadership and strategic execution."
+    },
+    {
+      "title": "Retail Technology",
+      "description": "Advising leadership teams on retail technology and strategic execution."
+    }
+  ],
+  "achievements": [
+    {
+      "value": "16+",
+      "label": "years of professional experience"
+    },
+    {
+      "value": "✓",
+      "label": "Worked across India and Middle East"
+    },
+    {
+      "value": "✓",
+      "label": "Led multiple enterprise transformation programs"
+    },
+    {
+      "value": "✓",
+      "label": "Advised senior leadership on technology strategy"
+    },
+    {
+      "value": "✓",
+      "label": "Built and managed multicultural teams"
+    }
+  ],
+  "ideas": [],
+  "speaking": [],
+  "videos": [],
+  "courses": [],
+  "communities": [],
+  "portfolio": [],
+  "sectionPreferences": {
+    "about": true,
+    "expertise": true,
+    "achievements": true,
+    "ideas": false,
+    "speaking": false,
+    "videos": false,
+    "courses": false,
+    "communities": false,
+    "portfolio": false,
+    "contact": true
+  },
+  "branding": {
+    "style": "executive",
+    "accentColor": "#2563eb"
+  },
+  "seo": {
+    "title": "Rohan Kapoor | Founder & Managing Director, Nexora Advisory",
+    "description": "Rohan Kapoor is a business transformation and technology leader with over 16 years of experience across India and the Middle East. He works with organisations on digital transformation, enterprise technology, AI adoption and business strategy.",
+    "keywords": [
+      "Rohan Kapoor",
+      "Founder & Managing Director, Nexora Advisory",
+      "Strategy"
+    ]
+  },
+  "sections": {
+    "about": true,
+    "expertise": true,
+    "achievements": true,
+    "ideas": false,
+    "speaking": false,
+    "videos": false,
+    "courses": false,
+    "communities": false,
+    "portfolio": false,
+    "contact": true
+  }
+}

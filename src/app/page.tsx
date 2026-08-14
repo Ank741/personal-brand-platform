@@ -13,6 +13,7 @@ import { Videos } from '@/components/brand/Videos';
 import { Courses } from '@/components/brand/Courses';
 import { Community } from '@/components/brand/Community';
 import { Portfolio } from '@/components/brand/Portfolio';
+import { Gallery } from '@/components/brand/Gallery';
 import { Contact } from '@/components/brand/Contact';
 import { SiteFooter } from '@/components/brand/SiteFooter';
 import { DevPlatformSwitcher } from '@/components/brand/DevPlatformSwitcher';
@@ -92,13 +93,16 @@ export default async function Page({ searchParams }: PageProps) {
       <Courses client={client} />
       <Community client={client} />
       <Portfolio client={client} />
+      <Gallery client={client} />
       <Contact client={client} />
       <SiteFooter client={client} />
 
-      {/* Development Only Platform Switcher */}
-      <Suspense fallback={null}>
-        <DevPlatformSwitcher currentClientId={client.id} />
-      </Suspense>
+      {/* Development Only Platform Switcher (Excluded from production builds) */}
+      {process.env.NODE_ENV === 'development' && (
+        <Suspense fallback={null}>
+          <DevPlatformSwitcher currentClientId={client.id} />
+        </Suspense>
+      )}
     </main>
   );
 }
