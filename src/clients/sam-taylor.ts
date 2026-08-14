@@ -1,0 +1,96 @@
+import { ClientProfile } from '@/types/client';
+
+export const samTaylorClient: ClientProfile = {
+  id: "sam-taylor",
+  domain: "samtaylor.com",
+  name: "Sam Taylor",
+  professionalTitle: "FinTech Strategy & Capital Leader",
+  headline: "Scaling Payment Infrastructure & Cross-Border Capital Networks",
+  subHeadline: "FinTech executive with 12+ years building global payment platforms and advising high-growth financial networks.",
+  location: "New York, NY",
+  
+  shortBio: "FinTech executive with 12+ years building global payment platforms and advising high-growth financial networks.",
+  longBio: "Sam Taylor operates at the intersection of regulatory frameworks, capital markets, and financial technology infrastructure. Having advised executive leadership teams across North America and Europe, Sam helps venture-backed FinTech entities scale operating infrastructure and dismantle market entry friction.",
+  storyHeadline: "Building High-Trust Financial Infrastructure for the Next Decade",
+  philosophyQuote: "FinTech scale requires marrying technological speed with uncompromising institutional compliance and risk management.",
+
+  brand: {
+    accentColor: "#2563eb",
+    heroVariant: "executive",
+    aboutVariant: "executive-split",
+    expertiseVariant: "editorial-list",
+    achievementsVariant: "executive-stats",
+    portfolioVariant: "case-study-cards",
+  },
+
+  social: {
+    linkedin: "https://linkedin.com/in/fictional-sam-taylor",
+    x: "https://x.com/fictional_samtaylor",
+    
+    
+    email: "sam.taylor@fictional-fintech.com",
+  },
+
+  expertise: [
+  {
+    "title": "Cross-Border Payment Architecture",
+    "description": "Designing high-throughput transaction settlement networks across multi-currency jurisdictions."
+  },
+  {
+    "title": "Regulatory Governance & Compliance",
+    "description": "Structuring institutional risk frameworks that align with international banking and fintech regulations."
+  },
+  {
+    "title": "Capital Markets & Scaling Strategy",
+    "description": "Advising institutional growth entities on strategic capital deployment and platform expansion."
+  }
+],
+  achievements: [
+  {
+    "value": "12+",
+    "label": "Years FinTech Experience",
+    "sublabel": "Cross-Border Networks"
+  },
+  {
+    "value": "$2B+",
+    "label": "Annual Transaction Volume Scale",
+    "sublabel": "Infrastructure Operations"
+  },
+  {
+    "value": "18",
+    "label": "Global Financial Jurisdictions",
+    "sublabel": "Regulatory Clearance"
+  }
+],
+  ideas: [],
+  speaking: [],
+  videos: [],
+  courses: [],
+  communities: [],
+  portfolio: [],
+
+  contact: {
+    email: "sam.taylor@fictional-fintech.com",
+    location: "New York, NY",
+    contactFormEnabled: true,
+  },
+
+  seo: {
+    title: "Sam Taylor | FinTech Strategy & Capital Leader",
+    description: "Official site of Sam Taylor — FinTech advisor specializing in payment architecture and cross-border capital scale.",
+    keywords: ["FinTech","Payment Architecture","Capital Markets","Regulatory Governance"],
+  },
+
+  sections: {
+  "about": true,
+  "expertise": true,
+  "achievements": true,
+  "ideas": false,
+  "speaking": false,
+  "videos": false,
+  "courses": false,
+  "communities": false,
+  "portfolio": false,
+  "contact": true
+},
+};

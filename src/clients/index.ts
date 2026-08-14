@@ -1,8 +1,10 @@
+import { samTaylorClient } from './sam-taylor';
 import { ClientProfile } from '@/types/client';
 import { alexMorganClient } from './alex-morgan';
 import { mayaVermaClient } from './maya-verma';
 
 export const clients: Record<string, ClientProfile> = {
+  'sam-taylor': samTaylorClient,
   'alex-morgan': alexMorganClient,
   'maya-verma': mayaVermaClient,
 };

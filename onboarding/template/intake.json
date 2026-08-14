@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Client Intake Template",
+  "description": "Standard onboarding intake file for onboarding a new personal brand client.",
+  "identity": {
+    "name": "Jane Doe",
+    "professionalTitle": "Executive Strategy & Operational Scale Leader",
+    "location": "New York, NY",
+    "headline": "Scaling Enterprise Infrastructure & High-Growth Organizations",
+    "shortBio": "Executive advisor with 15+ years leading multi-market operating model pivots.",
+    "longBio": "Jane Doe specializes in guiding boardrooms and leadership teams through complex organizational shifts..."
+  },
+
+  "contact": {
+    "email": "jane.doe@example.com",
+    "linkedin": "https://linkedin.com/in/fictional-jane-doe",
+    "instagram": "",
+    "youtube": "",
+    "x": "https://x.com/fictional_janedoe"
+  },
+
+  "expertise": [
+    {
+      "title": "Enterprise Operating Model Scale",
+      "description": "Designing sustainable operational frameworks that align business strategy with technology execution."
+    },
+    {
+      "title": "Post-Merger IT & Team Integration",
+      "description": "Harmonizing legacy architectures and team structures during large-scale enterprise mergers."
+    }
+  ],
+
+  "achievements": [
+    {
+      "value": "15+",
+      "label": "Years Advisory Experience",
+      "sublabel": "Global Enterprises"
+    },
+    {
+      "value": "$300M+",
+      "label": "Portfolio Modernization Value Impacted"
+    }
+  ],
+
+  "ideas": [
+    {
+      "title": "The Blueprint for Legacy System Modernization",
+      "summary": "How legacy enterprises can dismantle technical debt without interrupting core business operations.",
+      "category": "Strategy & Scale",
+      "type": "Article",
+      "date": "2026",
+      "url": "#"
+    }
+  ],
+
+  "speaking": [],
+
+  "videos": [],
+
+  "courses": [],
+
+  "communities": [],
+
+  "portfolio": [],
+
+  "sectionPreferences": {
+    "about": true,
+    "expertise": true,
+    "achievements": true,
+    "ideas": true,
+    "speaking": false,
+    "videos": false,
+    "courses": false,
+    "communities": false,
+    "portfolio": false,
+    "contact": true
+  },
+
+  "branding": {
+    "style": "auto",
+    "accentColor": "auto"
+  },
+
+  "seo": {
+    "title": "Jane Doe | Executive Strategy & Operational Scale Leader",
+    "description": "Official personal brand website of Jane Doe, executive strategy advisor specializing in enterprise operating models and digital scale.",
+    "keywords": ["Executive Strategy", "Enterprise Scale", "Operating Models"]
+  }
+}
